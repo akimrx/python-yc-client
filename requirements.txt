@@ -1,0 +1,5 @@
+requests
+decorator>=4.4.0
+pyjwt>=1.7.1
+cryptography
+pyyaml
