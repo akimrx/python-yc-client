@@ -11,7 +11,7 @@
 You  can install from source with:
 
 ```bash
-git clone https://github.com/akimrxpython-yc-client  --recursive
+git clone https://github.com/akimrx/python-yc-client  --recursive
 cd python-yc-client 
 python3 setup.py install
 ```
