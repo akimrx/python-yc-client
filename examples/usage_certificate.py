@@ -1,7 +1,3 @@
-import os
-import time
-import yaml
-
 from yandex_cloud_client.client import CertificateClient
 
 TOKEN = "YOUR_OAUTH_TOKEN"
