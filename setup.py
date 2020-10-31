@@ -37,11 +37,6 @@ setup(
     url="https://github.com/akimrx/python-yc-client",
     keywords='yandex cloud rest api client',
     packages=packages,
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GPL License",
-        "Operating System :: OS Independent",
-    ],
     install_requrements=requirements,
     include_package_data=True,
     python_requires='>=3.6',

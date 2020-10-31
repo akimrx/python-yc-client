@@ -2,14 +2,29 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
+![](docs/logo.png = 300px)
+
 **PRE-ALPHA VERSION**  
 
 **Probably, this REST API Client will make your life with Yandex.Cloud a little easier.**  
 
 ## Installing
 
-You  can install from source with:
+* Installing from pypi:
+```bash
+pip3 install yandex-cloud-client
+```
+  
+* Also, you can install from source with:
 
+```bash
+git clone https://github.com/akimrx/python-yc-client  --recursive
+cd python-yc-client 
+make install
+```
+  
+or
+  
 ```bash
 git clone https://github.com/akimrx/python-yc-client  --recursive
 cd python-yc-client 
