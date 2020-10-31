@@ -1,9 +1,9 @@
 # Changelog
 
 
-## Alpha-version 1.0.2
+## Alpha-version 1.0.1
 **31-10-2020**
-*Released 1.0.2.*
+*Released 1.0.1*
 
 * Certificate Manager Client added and support methods:
   * Create Let's Encrypt free certificate  
@@ -13,10 +13,10 @@
 * Fixed minor issues  
   
   
-## Alpha-version 1.0.1
+## Alpha-version 1.0
 
 **01-04-2020**  
-*Released 1.0.1*  
+*Released 1.0*  
 
 * Base Client provides an interface for working with:  
   * Authorization with the use:  
