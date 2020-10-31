@@ -23,7 +23,7 @@ python3 setup.py install
 The first step is to import required client of the Yandex.Cloud Services.  
 Each client of a Yandex.Cloud service inherits authorization from the base client, which supports three methods:
 
-* OAuth token
+* [OAuth token](https://oauth.yandex.com/authorize?response_type=token&client_id=1a6990aa636648e9b2ef855fa7bec2fb)
 
 ```python
 from yandex_cloud_client import ComputeClient
@@ -31,7 +31,7 @@ from yandex_cloud_client import ComputeClient
 client = ComputeClient(oauth_token='YOUR_OAUTH_TOKEN')
 ```
 
-* IAM token
+* [IAM token](https://cloud.yandex.com/docs/iam/operations/iam-token/create)
 
 ```python
 from yandex_cloud_client import ComputeClient
@@ -39,7 +39,7 @@ from yandex_cloud_client import ComputeClient
 client = ComputeClient(iam_token='YOUR_IAM_TOKEN')
 ```
 
-* Service account key
+* [Service account key](https://cloud.yandex.com/docs/iam/operations/authorized-key/create)
 
 ```python
 import json
@@ -50,6 +50,9 @@ with open('/path/to/key.json', 'r') as infile:
 
 client = ComputeClient(service_account_key=credentials)
 ```
+
+> You can get key.json from [Yandex Cloud CLI](https://cloud.yandex.com/docs/cli/quickstart)
+> `yc iam key create --service-account-name my-robot -o my-robot-key.json`
 
 ### Basic example for Instance from Compute Cloud Service
 

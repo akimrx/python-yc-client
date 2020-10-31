@@ -12,8 +12,8 @@ from yandex_cloud_client.base import YandexCloudObject
 from yandex_cloud_client.utils.request import Request
 from yandex_cloud_client.utils.decorators import log
 from yandex_cloud_client.utils.helpers import convert_yaml_to_dict
-from yandex_cloud_client.utils.endpoints import (BASE_URL, IAM_URL, COMPUTE_URL, 
-                                                 OPERATION_URL, RESOURCE_MANAGER_URL)
+from yandex_cloud_client.utils.endpoints import (BASE_URL, IAM_URL, COMPUTE_URL, CERTIFICATE_URL,
+                                                 OPERATION_URL, RESOURCE_MANAGER_URL, CERTIFICATE_DATA_URL)
 
 from yandex_cloud_client.constants import BASE_HEADERS, DEFAULT_TIMEOUT
 from yandex_cloud_client.error import (InvalidToken, YandexCloudError,
@@ -21,12 +21,17 @@ from yandex_cloud_client.error import (InvalidToken, YandexCloudError,
 
 from yandex_cloud_client.iam.service_account import ServiceAccountAuth
 from yandex_cloud_client.operation import Operation, OperationWait
+
 from yandex_cloud_client.compute.disk import Disk, DiskSpec, AttachedDiskSpec
 from yandex_cloud_client.compute.instance import Instance, InstanceSpec
 from yandex_cloud_client.compute.snapshot import Snapshot, SnapshotSpec
 
+from yandex_cloud_client.certificate import Certificate, CertificateRequestSpec, CertificateContent
+
+
 logger = logging.getLogger(__name__)
 
+# TODO (akimrx): add accessBindings for all clients
 # TODO (akimrx): add pagintaion for list requests
 # TODO (akimrx): add IAM methods to Base Client
 
@@ -58,6 +63,8 @@ class YandexCloudClient(YandexCloudObject):
       compute_url: str
       iam_url: str
       operation_url: str
+      certificate_url: str
+      certificate_data_url: str
 
     Methods:
       operation()                     -> return Operation object
@@ -74,6 +81,8 @@ class YandexCloudClient(YandexCloudObject):
                  base_url: str = None,
                  resource_manager_url: str = None,
                  compute_url: str = None,
+                 certificate_url: str = None,
+                 certificate_data_url: str = None,
                  iam_url: str = None,
                  operation_url: str = None):
 
@@ -106,6 +115,8 @@ class YandexCloudClient(YandexCloudObject):
         self.iam_url = iam_url or IAM_URL
         self.resource_manager_url = resource_manager_url or RESOURCE_MANAGER_URL
         self.compute_url = compute_url or COMPUTE_URL
+        self.certificate_url = certificate_url or CERTIFICATE_URL
+        self.certificate_data_url = certificate_data_url or CERTIFICATE_DATA_URL
         self.operation_url = operation_url or OPERATION_URL
 
     @staticmethod
@@ -153,6 +164,41 @@ class YandexCloudClient(YandexCloudObject):
             raise BadRequest(result.text)
 
         return response.get('endpoints')
+
+    # Private methods for ComputeClient workflow
+
+    def _delete_resource(self, url, await_complete=None) -> Operation:
+        response = self._request.delete(url)
+        operation = Operation.de_json(response, self)
+        if not await_complete:
+            return operation
+        return OperationWait(operation).completed
+
+    # actually, half-async (because Requests)
+    async def _async_delete_resource(self, url) -> CoroutineType:
+        response = self._request.delete(url)
+        operation = Operation.de_json(response, self)
+
+        await OperationWait(operation).await_complete_async()
+
+    # # FIXME: useless?
+    # def _run_operation(self, operation) -> Operation:
+    #     return Operation.de_json(operation, self)
+
+    def _resource_create(self, url, data=None, await_complete=True) -> Operation:
+        response = self._request.post(url, json=data)
+        operation = Operation.de_json(response, self)
+
+        if not await_complete:
+            return operation
+        return OperationWait(operation).completed
+
+    # actually, half-async (because Requests)
+    async def _async_resource_create(self, url, data=None) -> Operation:
+        response = self._request.post(url, json=data)
+        operation = Operation.de_json(response, self)
+
+        await OperationWait(operation).await_complete_async()
 
     # Operations public methods
 
@@ -247,28 +293,10 @@ class ComputeClient(YandexCloudClient):
       compute_url: str
       iam_url: str
       operation_url: str
+      certificate_url: str
+      certificate_data_url: str
 
     """
-
-    # Private methods for ComputeClient workflow
-
-    def _delete_resource(self, url, await_complete=None) -> Operation:
-        response = self._request.delete(url)
-        operation = self._run_operation(response)
-        if not await_complete:
-            return operation
-        return OperationWait(operation).completed
-
-    # actually, half-async (because Requests)
-    async def _async_delete_resource(self, url) -> CoroutineType:
-        response = self._request.delete(url)
-        operation = self._run_operation(response)
-
-        await OperationWait(operation).await_complete_async()
-
-    # FIXME: useless?
-    def _run_operation(self, operation) -> Operation:
-        return Operation.de_json(operation, self)
 
     def _instance_state_management(self, action=None, instance_id=None,
                                    await_complete=None) -> Operation:
@@ -280,7 +308,7 @@ class ComputeClient(YandexCloudClient):
 
         url = f'{self.compute_url}/compute/v1/instances/{instance_id}:{action}'
         response = self._request.post(url)
-        operation = self._run_operation(response)
+        operation = Operation.de_json(response, self)
         if not await_complete:
             return operation
         return OperationWait(operation).completed
@@ -295,7 +323,7 @@ class ComputeClient(YandexCloudClient):
 
         url = f'{self.compute_url}/compute/v1/instances/{instance_id}:{action}'
         response = self._request.post(url)
-        operation = self._run_operation(response)
+        operation = Operation.de_json(response, self)
 
         await OperationWait(operation).await_complete_async()
 
@@ -309,7 +337,7 @@ class ComputeClient(YandexCloudClient):
 
         url = f'{self.compute_url}/compute/v1/instances/{instance_id}:{action}'
         response = self._request.post(url, json=data)
-        operation = self._run_operation(response)
+        operation = Operation.de_json(response, self)
         if not await_complete:
             return operation
         return OperationWait(operation).completed
@@ -325,7 +353,7 @@ class ComputeClient(YandexCloudClient):
 
         url = f'{self.compute_url}/compute/v1/instances/{instance_id}:{action}'
         response = self._request.post(url, json=data)
-        operation = self._run_operation(response)
+        operation = Operation.de_json(response, self)
 
         await OperationWait(operation).await_complete_async()
 
@@ -334,21 +362,6 @@ class ComputeClient(YandexCloudClient):
         for disk_id in disks:
             attached_disks.append(self.disk(disk_id, raw=True))
         return Disk.de_list(attached_disks, self)
-
-    def _resource_create(self, url, data=None, await_complete=True) -> Operation:
-        response = self._request.post(url, json=data)
-        operation = self._run_operation(response)
-
-        if not await_complete:
-            return operation
-        return OperationWait(operation).completed
-
-    # actually, half-async (because Requests)
-    async def _async_resource_create(self, url, data=None) -> Operation:
-        response = self._request.post(url, json=data)
-        operation = self._run_operation(response)
-
-        await OperationWait(operation).await_complete_async()
 
     # Instance public methods
 
@@ -496,20 +509,7 @@ class ComputeClient(YandexCloudClient):
             ssh-authorized-keys:
               - ssh-rsa AAA...
         ```
-
-        For getting more example you can use:
-          `from yandex_cloud_client import example_instance_dict, generate_instance_yaml_example
-           print(example_instance_dict())
-           # or
-           generate_instance_yaml_example(path='/path/to/save/)`
-
         """
-        # IN FUTURE
-        # args: cores, memory, folder_id, zone_id, etc
-        # params = locals().copy()
-        # res = resuorces.de_json(params, client)
-        # net = network.de_json(params, client)
-        # merged = Compose(res, net, etc)
 
         url = f'{self.compute_url}/compute/v1/instances'
         data = convert_yaml_to_dict(yaml_spec)
@@ -613,7 +613,7 @@ class ComputeClient(YandexCloudClient):
         return self._resource_create(url, data=data, await_complete=await_complete)
 
     @log
-    def delete_snapshot(self, folder_id: str, snapshot_id: str, await_complete=True,
+    def delete_snapshot(self, snapshot_id: str, await_complete=True,
                         run_async_await=False) -> Operation:
         url = f'{self.compute_url}/compute/v1/snapshots/{snapshot_id}'
 
@@ -651,3 +651,133 @@ class ComputeClient(YandexCloudClient):
     createSnapshot = create_snapshot
     deleteSnapshot = delete_snapshot
     updateSnapshot = update_snapshot
+
+
+class CertificateClient(YandexCloudClient):
+    """Yandex.Cloud Certificate Manager Client.
+
+    Child class, which inherit the properties and methods
+    from the YandexCloudClient parent class.
+
+    Required Args:
+      oauth_token: str
+            or
+      iam_token: str
+            or
+      service_account_key: dict
+
+    Optional Args:
+      request: Request
+      base_url: str
+      compute_url: str
+      iam_url: str
+      operation_url: str
+      certificate_url: str
+      certificate_data_url: str
+
+    """
+
+    @log
+    def certificate(self, certificate_id: str, view="FULL") -> Certificate:
+        """Return certificate:
+        BASIC - short info,
+        FULL - full info with challenges.
+        """
+        url = f'{self.certificate_url}/certificate-manager/v1/certificates/{certificate_id}?view={view}'
+
+        response = self._request.get(url)
+        return Certificate.de_json(response, self)
+
+    @log
+    def certificate_content(self, certificate_id: str) -> CertificateContent:
+        url = f'{self.certificate_data_url}/certificate-manager/v1/certificates/{certificate_id}:getContent'
+
+        response = self._request.get(url)
+        return CertificateContent.de_json(response, self)
+
+    @log
+    def certificates_in_folder(self,
+                               folder_id: str,
+                               page_size=1000,
+                               query_filter=None,
+                               view="BASIC") -> [Certificate]:
+        """Return certificates in the specified folder:
+        BASIC - short info,
+        FULL - full info with challenges.
+        """
+
+        url = f'{self.certificate_url}/certificate-manager/v1/certificates?folderId={folder_id}&pageSize={page_size}&view={view}'
+        if query_filter:
+            url += f'&filter={query_filter}'
+        response = self._request.get(url).get('certificates')
+        return Certificate.de_list(response, self)
+
+    @log
+    def certificate_operations(self,
+                               certificate_id: str,
+                               page_size=1000) -> [Operation]:
+        url = f'{self.compute_url}/certificate-manager/v1/certificates{certificate_id}/operations?pageSize={page_size}'
+        response = self._request.get(url).get('operations')
+        return Operation.de_list(response, self)
+
+    @log
+    def create_user_certificate(self):
+        pass
+
+    @log
+    def request_new_letsencrypt_certificate(self,
+                                            folder_id: str,
+                                            name: str,
+                                            domains: list,
+                                            description: str = None,
+                                            labels: dict = dict(),
+                                            challenge_type: str = "DNS",
+                                            await_complete=True,
+                                            run_async_await=False) -> Operation:
+        """Create new Let's encrypt free certificate in the specified folder.
+        Challenge type must be DNS or HTTP.
+        """
+
+        url = f'{self.certificate_url}/certificate-manager/v1/certificates/requestNew'
+
+        params = locals().copy()
+        del params['self']
+        data = CertificateRequestSpec.prepare(params, self)
+
+        if run_async_await:
+            return self._async_resource_create(url, data=data)
+        return self._resource_create(url, data=data, await_complete=await_complete)
+
+    @log
+    def update_certificate(self,
+                           certificate_id: str,
+                           updateMask: str,
+                           name=None,
+                           description=None,
+                           labels=None,
+                           certificate=None,
+                           chain=None,
+                           private_key=None) -> Operation:
+        pass
+
+    @log
+    def delete_certificate(self,
+                           certificate_id: str,
+                           await_complete=True,
+                           run_async_await=False) -> Operation:
+        url = f'{self.certificate_url}/certificate-manager/v1/certificates/{certificate_id}'
+
+        if run_async_await:
+            return self._async_delete_resource(url)
+        return self._delete_resource(url, await_complete=await_complete)
+
+
+    # Aliases
+
+    folderCertificates = certificates_in_folder
+    certificateContent = certificate_content
+    certificateOperations = certificate_operations
+    createUserCertificate = create_user_certificate
+    createLetsEncryptCertificate = request_new_letsencrypt_certificate
+    updateCertificate = update_certificate
+    deleteCertificate = delete_certificate

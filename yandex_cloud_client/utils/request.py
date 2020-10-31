@@ -106,6 +106,7 @@ class Request:
         if 200 <= resp.status_code <= 299:
             return resp
 
+        logger.debug(resp.content)
         parse = self._parse(resp.content)
         message = parse.error or 'Unknown HTTPError'
 
