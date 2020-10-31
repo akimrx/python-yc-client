@@ -100,6 +100,7 @@ class OperationMetadata(YandexCloudObject):
                  image_id=None,
                  subnet_id=None,
                  network_id=None,
+                 certificate_id=None,
                  client=None,
                  **kwargs):
 
@@ -111,6 +112,7 @@ class OperationMetadata(YandexCloudObject):
         self.image_id = image_id
         self.subnet_id = subnet_id
         self.network_id = network_id
+        self.certificate_id = certificate_id
 
         self.client = client
 

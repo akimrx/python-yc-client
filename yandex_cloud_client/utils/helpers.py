@@ -5,7 +5,10 @@
 import re
 import yaml
 import json
+import logging
 import datetime as dt
+
+logger = logging.getLogger(__name__)
 
 
 def disk_mode_converter(mode):
@@ -83,8 +86,14 @@ def from_timestamp(unixtime):
 
 def string_to_datetime(strtime):
     try:
+        raw_time = strtime.split('.')[0]
+        return dt.datetime.strptime(raw_time, '%Y-%m-%dT%H:%M:%S')
+    except IndexError:
+        return strtime
+    except ValueError:
         return dt.datetime.strptime(strtime, '%Y-%m-%dT%H:%M:%Sz')
-    except Exception:
+    except Exception as err:
+        logger.debug(err)
         return strtime
 
 

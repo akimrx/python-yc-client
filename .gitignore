@@ -1,0 +1,24 @@
+**/__pycache__
+__pycache__
+*__pycache__*
+.venv
+.env
+venv
+env
+.vscode
+trash
+instance_example.yaml
+*.json
+.old-examples
+create_instance_copy.py
+simulation.py
+tests
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+.DS_Store
+.AppleDouble
+.LSOverride
+*.log

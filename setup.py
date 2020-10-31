@@ -19,7 +19,7 @@ requirements = requirements()
 
 
 setup(name='python-yc-client',
-        version='0.0.1',
+        version='1.0.2',
         author='Akim Faskhutdinov',
         author_email='akimstrong@yandex.ru',
         license='GPLv3',

@@ -3,10 +3,12 @@
 
 from .base import YandexCloudObject
 
-from .client import YandexCloudClient, ComputeClient
+from .client import YandexCloudClient, ComputeClient, CertificateClient
 
 from .cloud import Cloud
 from .folder import Folder
+
+from .certificate import Certificate, CertificateContent, CertificateRequestSpec, Challenges, DnsChallenges, HttpChallenges
 
 from .compute.disk import Disk, DiskSpec, AttachedDisk, AttachedDiskSpec
 from .compute.image import Image
@@ -32,9 +34,10 @@ from .version import __version__
 __author__ = 'akimstrong@yandex.ru'
 
 __all__ = [
-    'YandexCloudObject', 'YandexCloudClient', 'ComputeClient', 'Disk', 'DiskSpec', 'AttachedDisk', 'AttachedDiskSpec',
-    'Image', 'InstanceGroup', 'Instance', 'InstanceSpec', 'ResourcesSpec', 'Operation', 'OperationWait',
-    'PlacementGroup', 'Snapshot', 'ServiceAccountAuth', 'retry', 'log', 'generate_instance_yaml_example',
-    'instance_dict_example', 'Request', 'Response', 'Address', 'OneToOneNat', 'NetworkInterface',
-    'Zone', 'Cloud', 'Folder', '__version__', '__author__'
+    'YandexCloudObject', 'YandexCloudClient', 'ComputeClient', 'CertificateClient', 'Disk',
+    'Certificate', 'CertificateContent', 'CertificateRequestSpec', 'Challenges', 'DnsChallenges',
+    'HttpChallenges', 'DiskSpec', 'AttachedDisk', 'AttachedDiskSpec', 'Image', 'InstanceGroup',
+    'Instance', 'InstanceSpec', 'ResourcesSpec', 'Operation', 'OperationWait', 'PlacementGroup',
+    'Snapshot', 'ServiceAccountAuth', 'retry', 'log', 'Request', 'Response', 'Address', 'OneToOneNat', 
+    'NetworkInterface', 'Zone', 'Cloud', 'Folder', '__version__', '__author__'
 ]
