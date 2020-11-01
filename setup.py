@@ -27,7 +27,7 @@ requirements = requirements()
 
 setup(
     name='yandex-cloud-client',
-    version='1.0.2',
+    version='1.0.2a',
     author='Akim Faskhutdinov',
     author_email='akimstrong@yandex.ru',
     license='GPLv3',
