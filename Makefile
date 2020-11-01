@@ -41,7 +41,7 @@ mypy:
 	mypy examples
 
 black:
-	black . --diff --color
+	black .
 
 dist:
 	python3 setup.py sdist
