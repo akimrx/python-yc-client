@@ -6,7 +6,7 @@ from .base import YandexCloudObject
 from .client import YandexCloudClient, ComputeClient, CertificateClient
 
 from .cloud import Cloud
-from .folder import Folder
+from .folder import Folder, FolderSpec
 
 from .certificate import Certificate, CertificateContent, CertificateRequestSpec, Challenges, DnsChallenges, HttpChallenges
 
@@ -38,6 +38,6 @@ __all__ = [
     'Certificate', 'CertificateContent', 'CertificateRequestSpec', 'Challenges', 'DnsChallenges',
     'HttpChallenges', 'DiskSpec', 'AttachedDisk', 'AttachedDiskSpec', 'Image', 'InstanceGroup',
     'Instance', 'InstanceSpec', 'ResourcesSpec', 'Operation', 'OperationWait', 'PlacementGroup',
-    'Snapshot', 'ServiceAccountAuth', 'retry', 'log', 'Request', 'Response', 'Address', 'OneToOneNat', 
-    'NetworkInterface', 'Zone', 'Cloud', 'Folder', '__version__', '__author__'
+    'Snapshot', 'ServiceAccountAuth', 'retry', 'log', 'Request', 'Response', 'Address', 'OneToOneNat',
+    'NetworkInterface', 'Zone', 'Cloud', 'Folder', '__version__', '__author__', 'FolderSpec'
 ]

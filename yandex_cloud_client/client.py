@@ -9,15 +9,30 @@ import requests
 from types import CoroutineType
 
 from yandex_cloud_client.base import YandexCloudObject
+
 from yandex_cloud_client.utils.request import Request
 from yandex_cloud_client.utils.decorators import log
 from yandex_cloud_client.utils.helpers import convert_yaml_to_dict
-from yandex_cloud_client.utils.endpoints import (BASE_URL, IAM_URL, COMPUTE_URL, CERTIFICATE_URL,
-                                                 OPERATION_URL, RESOURCE_MANAGER_URL, CERTIFICATE_DATA_URL)
-
+from yandex_cloud_client.utils.endpoints import (
+    BASE_URL,
+    IAM_URL,
+    COMPUTE_URL,
+    CERTIFICATE_URL,
+    OPERATION_URL,
+    RESOURCE_MANAGER_URL,
+    CERTIFICATE_DATA_URL
+)
 from yandex_cloud_client.constants import BASE_HEADERS, DEFAULT_TIMEOUT
-from yandex_cloud_client.error import (InvalidToken, YandexCloudError,
-                                       TooManyArguments, BadRequest)
+from yandex_cloud_client.error import (
+    InvalidToken,
+    YandexCloudError,
+    TooManyArguments,
+    BadRequest,
+    MethodNotAvailable
+)
+
+from yandex_cloud_client.cloud import Cloud
+from yandex_cloud_client.folder import Folder, FolderSpec
 
 from yandex_cloud_client.iam.service_account import ServiceAccountAuth
 from yandex_cloud_client.operation import Operation, OperationWait
@@ -32,6 +47,7 @@ from yandex_cloud_client.certificate import Certificate, CertificateRequestSpec,
 logger = logging.getLogger(__name__)
 
 # TODO (akimrx): add accessBindings for all clients
+# TODO (akimrx): add update() methods for all resources
 # TODO (akimrx): add pagintaion for list requests
 # TODO (akimrx): add IAM methods to Base Client
 
@@ -61,6 +77,7 @@ class YandexCloudClient(YandexCloudObject):
       request: Request
       base_url: str
       compute_url: str
+      resource_manager_url: str
       iam_url: str
       operation_url: str
       certificate_url: str
@@ -121,6 +138,7 @@ class YandexCloudClient(YandexCloudObject):
 
     @staticmethod
     def get_iam_token(oauth_token, raw=False) -> [str, dict]:
+        """Returns IAM Token for user account."""
         url = f'{IAM_URL}/iam/v1/tokens'
         data = {'yandexPassportOauthToken': oauth_token}
 
@@ -139,6 +157,7 @@ class YandexCloudClient(YandexCloudObject):
 
     @staticmethod
     def get_token_for_sa(sa_credentials: dict, raw=False) -> [str, dict]:
+        """Returns IAM Token for service account."""
         url = f'{IAM_URL}/iam/v1/tokens'
         data = {'jwt': ServiceAccountAuth(sa_credentials).generate_jwt()}
 
@@ -156,6 +175,7 @@ class YandexCloudClient(YandexCloudObject):
 
     @staticmethod
     def get_endpoints_from_api() -> dict:
+        """Return endpoints as dict."""
         url = f'{BASE_URL}/endpoints'
         result = requests.get(url)
         response = result.json()
@@ -168,6 +188,7 @@ class YandexCloudClient(YandexCloudObject):
     # Private methods for ComputeClient workflow
 
     def _delete_resource(self, url, await_complete=None) -> Operation:
+        """Wrapper for delete resources."""
         response = self._request.delete(url)
         operation = Operation.de_json(response, self)
         if not await_complete:
@@ -176,16 +197,16 @@ class YandexCloudClient(YandexCloudObject):
 
     # actually, half-async (because Requests)
     async def _async_delete_resource(self, url) -> CoroutineType:
+        """Half async func for delete resource.
+        Returns coroutine.
+        """
         response = self._request.delete(url)
         operation = Operation.de_json(response, self)
 
         await OperationWait(operation).await_complete_async()
 
-    # # FIXME: useless?
-    # def _run_operation(self, operation) -> Operation:
-    #     return Operation.de_json(operation, self)
-
     def _resource_create(self, url, data=None, await_complete=True) -> Operation:
+        """Wrapper for create resource."""
         response = self._request.post(url, json=data)
         operation = Operation.de_json(response, self)
 
@@ -195,6 +216,9 @@ class YandexCloudClient(YandexCloudObject):
 
     # actually, half-async (because Requests)
     async def _async_resource_create(self, url, data=None) -> Operation:
+        """Half async func for create resource.
+        Returns coroutine.
+        """
         response = self._request.post(url, json=data)
         operation = Operation.de_json(response, self)
 
@@ -204,12 +228,14 @@ class YandexCloudClient(YandexCloudObject):
 
     @log
     def operation(self, operation_id: str) -> Operation:
+        """Returns operation as object."""
         url = f'{self.operation_url}/operations/{operation_id}'
         response = self._request.get(url)
         return Operation.de_json(response, self)
 
     @log
     def cancel_operation(self, operation_id: str) -> Operation:
+        """Cancels the operation if possible."""
         url = f'{self.operation_url}/operations/{operation_id}:cancel'
         try:
             response = self._request.post(url)
@@ -217,53 +243,113 @@ class YandexCloudClient(YandexCloudObject):
         except YandexCloudError:
             raise BadRequest("Operation can't be canceled.")
 
-    def cloud(self):
-        pass
+    @log
+    def cloud(self, cloud_id: str) -> Cloud:
+        """Returns cloud as object."""
+        url = f'{self.resource_manager_url}/resource-manager/v1/clouds/{cloud_id}'
 
-    def available_clouds(self):
-        pass
+        response = self._request.get(url)
+        return Cloud.de_json(response, self)
 
+    @log
+    def available_clouds(self, page_size: int = 1000, query_filter: str = None) -> [Cloud]:
+        """Returns list of available clouds for account."""
+        url = f'{self.resource_manager_url}/resource-manager/v1/clouds?pageSize={page_size}'
+
+        if query_filter:
+            url += f'&filter={query_filter}'
+
+        response = self._request.get(url).get('clouds')
+        return Cloud.de_list(response, self)
+
+    @log
     def update_cloud(self):
-        pass
+        raise MethodNotAvailable(f'Method update_cloud is not support yet')
 
-    def cloud_operations(self):
-        pass
+    @log
+    def cloud_operations(self, cloud_id: str, page_size=1000) -> [Operation]:
+        """Returns list of operations in the cloud."""
+        url = f'{self.resource_manager_url}/resource-manager/v1/clouds/{cloud_id}/operations?pageSize={page_size}'
+        response = self._request.get(url).get('operations')
+        return Operation.de_list(response, self)
 
+    @log
     def cloud_access_bindings(self):
-        pass
+        raise MethodNotAvailable(f'Method cloud_access_bindings is not support yet')
 
+    @log
     def update_cloud_access_bindings(self):
-        pass
+        raise MethodNotAvailable(f'Method update_cloud_access_bindings is not support yet')
 
+    @log
     def set_cloud_access_bindings(self):
-        pass
+        raise MethodNotAvailable(f'Method set_cloud_access_bindings is not support yet')
 
-    def folder(self):
-        pass
+    @log
+    def folder(self, folder_id: str) -> Folder:
+        """Returns folder as object."""
+        url = f'{self.resource_manager_url}/resource-manager/v1/folders/{folder_id}'
 
-    def folders_in_cloud(self):
-        pass
+        response = self._request.get(url)
+        return Folder.de_json(response, self)
 
-    def folder_operations(self):
-        pass
+    @log
+    def folders_in_cloud(self, cloud_id: str, page_size: int = 1000, query_filter: str = None) -> [Folder]:
+        """Returns all available folders for user / service account,
+        depending on the type of authorization and permissions.
+        """
+        url = f'{self.resource_manager_url}/resource-manager/v1/folders?cloudId={cloud_id}&pageSize={page_size}'
 
+        if query_filter:
+            url += f'&filter={query_filter}'
+
+        response = self._request.get(url)
+        print(response)
+        return Folder.de_list(response.get('folders'), self)
+
+    @log
+    def folder_operations(self, folder_id: str, page_size=1000) -> [Operation]:
+        """Returns list of operations in the folder."""
+        url = f'{self.resource_manager_url}/resource-manager/v1/folders/{folder_id}/operations?pageSize={page_size}'
+        response = self._request.get(url).get('operations')
+        return Operation.de_list(response, self)
+
+    @log
     def folder_access_bindings(self):
-        pass
+        raise MethodNotAvailable(f'Method folder_access_bindings is not support yet')
 
+    @log
     def update_folder_access_bindings(self):
-        pass
+        raise MethodNotAvailable(f'Method update_folder_access_bindings is not support yet')
 
+    @log
     def set_folder_access_bindings(self):
-        pass
+        raise MethodNotAvailable(f'Method set_folder_access_bindings is not support yet')
 
-    def create_folder(self):
-        pass
+    @log
+    def create_folder(self,
+                      cloud_id: str,
+                      name: str,
+                      await_complete=True,
+                      run_async_await=False) -> Operation:
+        """Create folder in the specified cloud."""
+        url = f'{self.resource_manager_url}/resource-manager/v1/folders'
 
+        params = locals().copy()
+        del params['self']
+        data = FolderSpec.prepare(params, self)
+
+        if run_async_await:
+            return self._async_resource_create(url, data=data)
+        return self._resource_create(url, data=data, await_complete=await_complete)
+
+    @log
     def update_folder(self):
-        pass
+        raise MethodNotAvailable(f'Method update_folder is not support yet')
 
+    @log
     def delete_folder(self):
-        pass
+        raise MethodNotAvailable(f'Method delete_folder is not support yet')
 
 
     # Aliases
@@ -291,6 +377,7 @@ class ComputeClient(YandexCloudClient):
       request: Request
       base_url: str
       compute_url: str
+      resource_manager_url: str
       iam_url: str
       operation_url: str
       certificate_url: str
@@ -300,7 +387,9 @@ class ComputeClient(YandexCloudClient):
 
     def _instance_state_management(self, action=None, instance_id=None,
                                    await_complete=None) -> Operation:
-        """Supported actions: start, restart, stop."""
+        """Helper func for managing the state of the instance.
+        Supported actions: start, restart, stop.
+        """
 
         ACTIONS = ('start', 'restart', 'stop')
         if action not in ACTIONS:
@@ -315,7 +404,10 @@ class ComputeClient(YandexCloudClient):
 
     # actually, half-async (because Requests)
     async def _async_instance_state_management(self, action=None, instance_id=None) -> CoroutineType:
-        """Supported actions: start, restart, stop."""
+        """Half async helper func for managing the state of the instance.
+        Supported actions: start, restart, stop.
+        Returns coroutine.
+        """
 
         ACTIONS = ('start', 'restart', 'stop')
         if action not in ACTIONS:
@@ -329,7 +421,9 @@ class ComputeClient(YandexCloudClient):
 
     def _instance_disk_management(self, instance_id: str, data=None,
                                   action=None, await_complete=True) -> Operation:
-        """Supported actions: detachDisk, attachDisk."""
+        """Helper func for managing the state of the disk.
+        Supported actions: detachDisk, attachDisk.
+        """
 
         ACTIONS = ('detachDisk', 'attachDisk')
         if action not in ACTIONS:
@@ -345,7 +439,10 @@ class ComputeClient(YandexCloudClient):
     # actually, half-async (because Requests)
     async def _async_instance_disk_management(self, instance_id: str,
                                               action=None, data=None) -> Operation:
-        """Supported actions: detachDisk, attachDisk."""
+        """Half async helper func for managing the state of the disk.
+        Supported actions: detachDisk, attachDisk.
+        Returns coroutine.
+        """
 
         ACTIONS = ('detachDisk', 'attachDisk')
         if action not in ACTIONS:
@@ -358,6 +455,7 @@ class ComputeClient(YandexCloudClient):
         await OperationWait(operation).await_complete_async()
 
     def _convert_attached_disks(self, disks: list) -> Disk:
+        """Helpers func for convert instance attached disks."""
         attached_disks = []
         for disk_id in disks:
             attached_disks.append(self.disk(disk_id, raw=True))
@@ -367,6 +465,7 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def instance(self, instance_id: str, metadata=False) -> Instance:
+        """Returns instance as object."""
         url = f'{self.compute_url}/compute/v1/instances/{instance_id}'
         if metadata:
             url += '?view=FULL'
@@ -376,6 +475,7 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def instances_in_folder(self, folder_id: str, page_size=1000, query_filter=None) -> [Instance]:
+        """Returns list of instances in the folder."""
         url = f'{self.compute_url}/compute/v1/instances?folderId={folder_id}&pageSize={page_size}'
         if query_filter:
             url += f'&filter={query_filter}'
@@ -384,12 +484,14 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def instance_serial_port_output(self, instance_id: str, port=1) -> str:
+        """Returns instance serial port output as string."""
         url = f'{self.compute_url}/compute/v1/instances/{instance_id}:serialPortOutput?port={port}'
         response = self._request.get(url).get('contents')
         return response
 
     @log
     def instance_operations(self, instance_id: str, page_size=1000) -> [Operation]:
+        """Returns list of instance operations."""
         url = f'{self.compute_url}/compute/v1/instances/{instance_id}/operations?pageSize={page_size}'
         response = self._request.get(url).get('operations')
         return Operation.de_list(response, self)
@@ -398,6 +500,7 @@ class ComputeClient(YandexCloudClient):
     def instance_attach_existent_disk(self, instance_id: str, disk_id: str, mode='READ_WRITE',
                                       device_name=None, auto_delete=False, await_complete=True,
                                       run_async_await=False) -> Operation:
+        """Attach existent disk to the specified instance."""
 
         # prepare valid data for disk
         params = locals().copy()
@@ -416,6 +519,7 @@ class ComputeClient(YandexCloudClient):
                                  auto_delete=None, name=None, description=None, type_id=None,
                                  image_id=None, snapshot_id=None, device_name=None,
                                  await_complete=True, run_async_await=False) -> Operation:
+        """Create new disk and attach him to the instance."""
 
         # prepare valid data for disk
         params = locals().copy()
@@ -432,6 +536,7 @@ class ComputeClient(YandexCloudClient):
     @log
     def instance_detach_disk(self, instance_id: str, disk_id=None, disk_name=None,
                              await_complete=True, run_async_await=False) -> Operation:
+        """Detach disk from the instance."""
         if disk_id and disk_name:
             raise TooManyArguments('disk_id and disk_name received, but you can use only one param')
 
@@ -449,6 +554,7 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def start_instance(self, instance_id: str, await_complete=True, run_async_await=False) -> Operation:
+        """Start specified instance and return operation as object."""
         if run_async_await:
             return self._async_instance_state_management(action='start',
                 instance_id=instance_id)
@@ -458,6 +564,7 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def restart_instance(self, instance_id: str, await_complete=True, run_async_await=False) -> Operation:
+        """Restart specified instance and return operation as object."""
         if run_async_await:
             return self._async_instance_state_management(action='restart',
                 instance_id=instance_id)
@@ -467,6 +574,7 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def stop_instance(self, instance_id: str, await_complete=True, run_async_await=False) -> Operation:
+        """Stop specified instance and return operation as object."""
         if run_async_await:
             return self._async_instance_state_management(action='stop',
                 instance_id=instance_id)
@@ -476,6 +584,7 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def delete_instance(self, instance_id: str, await_complete=True, run_async_await=False) -> Operation:
+        """Delete specified instance and return operation as object."""
         url = self.compute_url + f'/compute/v1/instances/{instance_id}'
         if run_async_await:
             return self._async_delete_resource(url)
@@ -520,16 +629,17 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def update_instance(self):
-        pass
+        raise MethodNotAvailable(f'Method update_instance is not support yet')
 
     @log
     def update_instance_metadata(self):
-        pass
+        raise MethodNotAvailable(f'Method update_instance_metadata is not support yet')
 
     # Disks public methods
 
     @log
     def disk(self, disk_id: str, raw=False) -> Disk:
+        """Returns a disk as object."""
         url = f'{self.compute_url}/compute/v1/disks/{disk_id}'
         response = self._request.get(url)
         if raw:
@@ -538,12 +648,14 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def disk_operations(self, disk_id: str, page_size=1000) -> [Operation]:
+        """Returns list of the disk operations."""
         url = f'{self.compute_url}/compute/v1/disks/{disk_id}/operations?pageSize={page_size}'
         response = self._request.get(url).get('operations')
         return Operation.de_list(response, self)
 
     @log
     def disks_in_folder(self, folder_id: str, page_size=1000, query_filter=None) -> [Disk]:
+        """Return list of the disks in a folder."""
         url = f'{self.compute_url}/compute/v1/disks?folderId={folder_id}&pageSize={page_size}'
         if query_filter:
             url += f'&filter={query_filter}'
@@ -552,6 +664,7 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def delete_disk(self, disk_id: str, await_complete=True, run_async_await=False) -> Operation:
+        """Delete specified disk and returns operation as object."""
         url = f'{self.compute_url}/compute/v1/disks/{disk_id}'
         if run_async_await:
             return self._async_delete_resource(url)
@@ -561,6 +674,7 @@ class ComputeClient(YandexCloudClient):
     def create_disk(self, folder_id: str, size: int, zone_id: str, name=None,
                     description=None, labels={}, type_id=None, image_id=None,
                     snapshot_id=None, await_complete=True, run_async_await=False) -> Operation:
+        """Create disk and returns operation as object."""
 
         url = f'{self.compute_url}/compute/v1/disks'
 
@@ -575,24 +689,27 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def update_disk(self):
-        pass
+        raise MethodNotAvailable(f'Method update_disk is not support yet')
 
     # Snapshots public methods
 
     @log
     def snapshot(self, snapshot_id: str) -> Snapshot:
+        """Returns the snapshot as object."""
         url = f'{self.compute_url}/compute/v1/snapshots/{snapshot_id}'
         response = self._request.get(url)
         return Snapshot.de_json(response, self)
 
     @log
     def snapshot_operations(self, snapshot_id: str, page_size=1000) -> [Operation]:
+        """Returns list of the snapshot operations."""
         url = f'{self.compute_url}/compute/v1/snapshots/{snapshot_id}/operations?pageSize={page_size}'
         response = self._request.get(url).get('operations')
         return Operation.de_list(response, self)
 
     @log
     def snapshots_in_folder(self, folder_id: str, page_size=1000, query_filter=None) -> [Snapshot]:
+        """Returns list of the snapshots in a folder."""
         url = f'{self.compute_url}/compute/v1/snapshots?folderId={folder_id}&pageSize={page_size}'
         if query_filter:
             url += f'&filter={query_filter}'
@@ -602,6 +719,7 @@ class ComputeClient(YandexCloudClient):
     @log
     def create_snapshot(self, folder_id: str, disk_id: str, name=None, description=None,
                         labels=None, await_complete=True, run_async_await=False) -> Operation:
+        """Create the snapshot for specified disk and return operation as object."""
         url = f'{self.compute_url}/compute/v1/snapshots'
 
         params = locals().copy()
@@ -615,6 +733,7 @@ class ComputeClient(YandexCloudClient):
     @log
     def delete_snapshot(self, snapshot_id: str, await_complete=True,
                         run_async_await=False) -> Operation:
+        """Delete specified snapshot and returns operation as object."""
         url = f'{self.compute_url}/compute/v1/snapshots/{snapshot_id}'
 
         if run_async_await:
@@ -623,7 +742,7 @@ class ComputeClient(YandexCloudClient):
 
     @log
     def update_snapshot(self):
-        pass
+        raise MethodNotAvailable(f'Method update_snapshot is not support yet')
 
 
     # Aliases
@@ -670,11 +789,11 @@ class CertificateClient(YandexCloudClient):
       request: Request
       base_url: str
       compute_url: str
+      resource_manager_url: str
       iam_url: str
       operation_url: str
       certificate_url: str
       certificate_data_url: str
-
     """
 
     @log
@@ -690,6 +809,7 @@ class CertificateClient(YandexCloudClient):
 
     @log
     def certificate_content(self, certificate_id: str) -> CertificateContent:
+        """Returns content (chain, key) for validated certificate."""
         url = f'{self.certificate_data_url}/certificate-manager/v1/certificates/{certificate_id}:getContent'
 
         response = self._request.get(url)
@@ -701,7 +821,7 @@ class CertificateClient(YandexCloudClient):
                                page_size=1000,
                                query_filter=None,
                                view="BASIC") -> [Certificate]:
-        """Return certificates in the specified folder:
+        """Returns certificates in the specified folder:
         BASIC - short info,
         FULL - full info with challenges.
         """
@@ -716,13 +836,14 @@ class CertificateClient(YandexCloudClient):
     def certificate_operations(self,
                                certificate_id: str,
                                page_size=1000) -> [Operation]:
+        """Returns list of certificate operations."""
         url = f'{self.compute_url}/certificate-manager/v1/certificates{certificate_id}/operations?pageSize={page_size}'
         response = self._request.get(url).get('operations')
         return Operation.de_list(response, self)
 
     @log
     def create_user_certificate(self):
-        pass
+        raise MethodNotAvailable(f'Method create_user_certificate is not support yet')
 
     @log
     def request_new_letsencrypt_certificate(self,
@@ -758,13 +879,14 @@ class CertificateClient(YandexCloudClient):
                            certificate=None,
                            chain=None,
                            private_key=None) -> Operation:
-        pass
+        raise MethodNotAvailable(f'Method update_certificate is not support yet')
 
     @log
     def delete_certificate(self,
                            certificate_id: str,
                            await_complete=True,
                            run_async_await=False) -> Operation:
+        """Delete specified certificate and returns operation as object."""
         url = f'{self.certificate_url}/certificate-manager/v1/certificates/{certificate_id}'
 
         if run_async_await:

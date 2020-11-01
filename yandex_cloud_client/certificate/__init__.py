@@ -16,6 +16,20 @@ class Certificate(YandexCloudObject):
       :id: str
       :folder_id: str
       :created_at: datetime
+      :name: str
+      :desription: str
+      :labels: dict
+      :type: str
+      :domains: list
+      :status: str
+      :subject: str
+      :serial: str
+      :updated_at: datetime
+      :issued_at: datetime
+      :not_after: datetime
+      :not_before: datetime
+      :challenges: list of objects
+
     """
 
     def __init__(self,
@@ -97,6 +111,7 @@ class Certificate(YandexCloudObject):
 
 
 class Challenges(YandexCloudObject):
+    """This object represents the certificate challenges."""
 
     def __init__(self,
                  domain=None,
@@ -150,6 +165,7 @@ class Challenges(YandexCloudObject):
 
 
 class DnsChallenges(YandexCloudObject):
+    """This object represents a DNS Challenge for the certificate."""
 
     def __init__(self,
                  name=None,
@@ -176,6 +192,7 @@ class DnsChallenges(YandexCloudObject):
 
 
 class HttpChallenges(YandexCloudObject):
+    """This object represents a HTTP Challenge for the certificate."""
 
     def __init__(self,
                  url=None,
@@ -200,6 +217,7 @@ class HttpChallenges(YandexCloudObject):
 
 
 class CertificateContent(YandexCloudObject):
+    """This object represents a content for the certificate."""
 
     def __init__(self,
                  id=None,
@@ -237,6 +255,7 @@ class CertificateContent(YandexCloudObject):
 
 
 class CertificateRequestSpec(YandexCloudObject):
+    """This object represents a specification for new certificate."""
 
     def __init__(self,
                  folder_id=None,

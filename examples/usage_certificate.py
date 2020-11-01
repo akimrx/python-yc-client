@@ -1,4 +1,4 @@
-from yandex_cloud_client.client import CertificateClient
+from yandex_cloud_client import CertificateClient
 
 TOKEN = "YOUR_OAUTH_TOKEN"
 client = CertificateClient(oauth_token=TOKEN)

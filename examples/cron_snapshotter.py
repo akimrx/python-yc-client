@@ -7,7 +7,7 @@ import yaml
 import logging
 import asyncio
 
-from yandex_cloud_client.client import ComputeClient
+from yandex_cloud_client import ComputeClient
 from yandex_cloud_client.error import YandexCloudError
 
 logging.basicConfig(level=logging.INFO, datefmt='%d %b %H:%M:%S', format=' %(asctime)s - %(levelname)s - %(message)s')

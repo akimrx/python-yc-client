@@ -3,6 +3,7 @@
 """This module contains Cloud class."""
 
 from yandex_cloud_client.base import YandexCloudObject
+from yandex_cloud_client.utils.helpers import string_to_datetime
 
 
 class Cloud(YandexCloudObject):
@@ -19,24 +20,27 @@ class Cloud(YandexCloudObject):
         super().handle_unknown_kwargs(self, **kwargs)
 
         self.id = id
-        self.created_at = created_at
+        self.created_at = string_to_datetime(created_at) if created_at is not None else created_at
         self.name = name
         self.description = description
 
         self.client = client
         self._id_attrs = (self.id,)
 
-    def add_folder(self):
-        pass
+    def add_folder(self, *args, **kwargs):
+        """Shortcut for client.create_folder()."""
+        return self.client.create_folder(self.id, *args, **kwargs)
 
     def update(self):
         pass
 
-    def operations(self):
-        pass
+    def operations(self, *args, **kwargs):
+        """Shortcut for client.cloud_operations()."""
+        return self.client.cloud_operations(self.id, *args, **kwargs)
 
-    def folders(self):
-        pass
+    def folders(self, *args, **kwargs):
+        """Shortcut for client.folders_in_cloud()."""
+        return self.client.folders_in_cloud(self.id, *args, **kwargs)
 
     def show_access_bindings(self):
         pass
