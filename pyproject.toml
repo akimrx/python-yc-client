@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 120
+target-version = ['py36', 'py37']
+skip-string-normalization = false
+
+# We need to force-exclude the negated include pattern
+# so that pre-commit run --all-files does the correct thing
+# see https://github.com/psf/black/issues/1778
+force-exclude = '^(?!/(yandex_cloud_client|examples|tests)/).*\.py$'
+include = '(yandex_cloud_client|examples|tests)/.*\.py$'

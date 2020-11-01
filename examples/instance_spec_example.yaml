@@ -8,6 +8,7 @@ resourcesSpec:
   cores: 2
   coreFraction: 50
 metadata:
+  # ssh-keys: ubuntu:ssh-rsa AAAAB...  # if user-data not specified
   serial-port-enable: '1'
   user-data: |
     #cloud-config
