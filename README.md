@@ -1,16 +1,16 @@
-# Unofficial Yandex.Cloud REST API Client
+# [Unofficial] Yandex.Cloud REST API Client
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![PyPi Package](https://img.shields.io/pypi/v/yandex-cloud-client.svg)](https://pypi.org/project/yandex-cloud-client/)
 
 ![](docs/logo.png)
 
-**PRE-ALPHA VERSION**  
+**ALPHA VERSION**  
 
 **Probably, this REST API Client will make your life with Yandex.Cloud a little easier.**  
 
 ## Installing
 
-* Installing from pypi:
+* Installing with [pip](https://pypi.org/project/yandex-cloud-client/):
 ```bash
 pip3 install yandex-cloud-client
 ```
@@ -38,7 +38,7 @@ python3 setup.py install
 The first step is to import required client of the Yandex.Cloud Services.  
 Each client of a Yandex.Cloud service inherits authorization from the base client, which supports three methods:
 
-* [OAuth token](https://oauth.yandex.com/authorize?response_type=token&client_id=1a6990aa636648e9b2ef855fa7bec2fb)
+* **[OAuth token](https://oauth.yandex.com/authorize?response_type=token&client_id=1a6990aa636648e9b2ef855fa7bec2fb)**
 
 ```python
 from yandex_cloud_client import ComputeClient
@@ -46,7 +46,7 @@ from yandex_cloud_client import ComputeClient
 client = ComputeClient(oauth_token='YOUR_OAUTH_TOKEN')
 ```
 
-* [IAM token](https://cloud.yandex.com/docs/iam/operations/iam-token/create)
+* **[IAM token](https://cloud.yandex.com/docs/iam/operations/iam-token/create)**
 
 ```python
 from yandex_cloud_client import ComputeClient
@@ -54,7 +54,7 @@ from yandex_cloud_client import ComputeClient
 client = ComputeClient(iam_token='YOUR_IAM_TOKEN')
 ```
 
-* [Service account key](https://cloud.yandex.com/docs/iam/operations/authorized-key/create)
+* **[Service account key](https://cloud.yandex.com/docs/iam/operations/authorized-key/create)**
 
 ```python
 import json
@@ -66,8 +66,10 @@ with open('/path/to/key.json', 'r') as infile:
 client = ComputeClient(service_account_key=credentials)
 ```
 
-> You can get key.json from [Yandex Cloud CLI](https://cloud.yandex.com/docs/cli/quickstart)
-> `yc iam key create --service-account-name my-robot -o my-robot-key.json`
+> You can get `key.json` from **[Yandex Cloud CLI](https://cloud.yandex.com/docs/cli/quickstart):**
+>```
+>yc iam key create --service-account-name my-robot -o my-robot-key.json
+>```
 
 ### Basic example for Instance from Compute Cloud Service
 
@@ -110,6 +112,8 @@ if __name__ == '__main__':
     show_instance_and_restart('YOUR_INSTANCE_ID')
     boot_disk_snapshot('YOUR_INSTANCE_ID')
 ```
+
+**See more examples [here](examples)**
 
 ### Logging
 
