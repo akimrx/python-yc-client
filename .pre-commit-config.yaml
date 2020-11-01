@@ -14,8 +14,7 @@ repos:
         args:
         - --diff
         - --check
-        - --line-length=120
-        - --skip-string-normalization
+        - --color
 -   repo: https://gitlab.com/pycqa/flake8
     rev: 3.8.4
     hooks:
