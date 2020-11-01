@@ -38,6 +38,10 @@ class PermissionDenied(YandexCloudError):
     pass
 
 
+class MethodNotAvailable(YandexCloudError):
+    pass
+
+
 class FeatureNotImplemented(YandexCloudError):
     pass
 

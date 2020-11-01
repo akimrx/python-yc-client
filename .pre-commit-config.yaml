@@ -7,22 +7,22 @@ repos:
     hooks:
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
--   repo: https://github.com/psf/black
-    rev: 19.10b0
-    hooks:
-    -   id: black
-        args:
-        - --diff
-        - --check
-        - --color
--   repo: https://gitlab.com/pycqa/flake8
-    rev: 3.8.4
-    hooks:
-    -   id: flake8
--   repo: https://github.com/PyCQA/pylint
-    rev: pylint-2.6.0
-    hooks:
-    -   id: pylint
-        files: ^(yandex_cloud_client|examples)/.*\.py$
-        args:
-        - --rcfile=setup.cfg
+# -   repo: https://github.com/psf/black
+#     rev: 19.10b0
+#     hooks:
+#     -   id: black
+#         args:
+#         - --diff
+#         - --check
+#         - --color
+# -   repo: https://gitlab.com/pycqa/flake8
+#     rev: 3.8.4
+#     hooks:
+#     -   id: flake8
+# -   repo: https://github.com/PyCQA/pylint
+#     rev: pylint-2.6.0
+#     hooks:
+#     -   id: pylint
+#         files: ^(yandex_cloud_client|examples)/.*\.py$
+#         args:
+#         - --rcfile=setup.cfg
