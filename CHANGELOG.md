@@ -1,8 +1,8 @@
 # Changelog
 
-## Alpha-version 1.0.2
+## Alpha-version 1.0.2b
 **01-11-2020**
-*Released 1.0.2*
+*Released 1.0.2b*
 
 * Cloud and folder methods:
   * Cloud as object
