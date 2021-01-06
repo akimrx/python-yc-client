@@ -1,0 +1,34 @@
+folderId: your-folder-id
+name: test-from-client
+description: testing
+zoneId: ru-central1-c
+platformId: standard-v2
+resourcesSpec:
+  memory: 2147483648
+  cores: 2
+  coreFraction: 50
+metadata:
+  # ssh-keys: ubuntu:ssh-rsa AAAAB...  # if user-data not specified
+  serial-port-enable: '1'
+  user-data: |
+    #cloud-config
+    users:
+    - name: your-username
+      sudo: ALL=(ALL) NOPASSWD:ALL
+      shell: /bin/bash
+      ssh-authorized-keys:
+        - ssh-rsa AAAA....
+bootDiskSpec:
+  diskSpec:
+    typeId: network-hdd
+    size: 10737418240
+    imageId: fd8veme9fg6pbg5ost48  # ubuntu 18.04
+networkInterfaceSpecs:
+- subnetId: your-subnet-id
+  primaryV4AddressSpec:
+    address: 10.10.0.10
+    oneToOneNatSpec:
+      address: 84.XX.XX.XX  # must be reserved before using
+schedulingPolicy:
+  preemptible: false
+  
