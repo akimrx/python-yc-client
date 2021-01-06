@@ -62,7 +62,7 @@ class Certificate(YandexCloudObject):
         self.created_at = string_to_datetime(created_at) if created_at is not None else created_at
         self.name = name
         self.description = description
-        self.labels = labels
+        self.labels = labels or {}
         self.type = type
         self.domains = domains
         self.status = status
@@ -105,9 +105,9 @@ class Certificate(YandexCloudObject):
         """Shortcut for client.certificate_content()."""
         return self.client.certificate_content(self.id, *args, **kwargs)
 
-    def delete(self, run_async_await=False, await_complete=True, *args, **kwargs):
+    def delete(self, *args, **kwargs):
         """Shortcut for client.delete_certificate()."""
-        return self.client.delete_certificate(self.id, await_complete, run_async_await, *args, **kwargs)
+        return self.client.delete_certificate(self.id, *args, **kwargs)
 
 
 class Challenges(YandexCloudObject):

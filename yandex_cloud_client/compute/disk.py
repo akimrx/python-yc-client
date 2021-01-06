@@ -23,7 +23,7 @@ class Disk(YandexCloudObject):
       :created_at: datetime
       :name: str
       :description: str
-      :labels: list
+      :labels: dict
       :type_id: str
       :zone_id: str
       :size: int
@@ -64,7 +64,7 @@ class Disk(YandexCloudObject):
         self.created_at = string_to_datetime(created_at) if created_at is not None else created_at
         self.name = name
         self.description = description
-        self.labels = labels
+        self.labels = labels or {}
         self.type_id = type_id
         self.zone_id = zone_id
         self.size = int(size) if size is not None else None
@@ -92,25 +92,22 @@ class Disk(YandexCloudObject):
         """Shortcut for client.update_disk()."""
         pass
 
-    def operations(self, page_size=1000, *args, **kwargs):
+    def operations(self, *args, **kwargs):
         """Shortcut for client.disk_operations()."""
-        return self.client.disk_operations(self.id, page_size=page_size, *args, **kwargs)
+        return self.client.disk_operations(self.id, *args, **kwargs)
 
-    def snapshots(self, query_filter=None, *args, **kwargs):
+    def snapshots(self, *args, **kwargs):
         """Shortcut for client.snapshots_in_folder()."""
         result = list()
-        snapshots = self.client.snapshots_in_folder(self.folder_id, page_size=1000,
-            query_filter=query_filter, *args, **kwargs)
+        snapshots = self.client.snapshots_in_folder(self.folder_id, *args, **kwargs)
         for snapshot in snapshots:
             if self.id == snapshot.source_disk_id:
                 result.append(snapshot)
         return result
 
-    def create_snapshot(self, name=None, description=None, labels=None, await_complete=True,
-                        run_async_await=False, *args, **kwargs):
+    def create_snapshot(self, *args, **kwargs):
         """Shortcut for client.create_snapshot()."""
-        return self.client.create_snapshot(self.folder_id, self.id, name=name, description=description, labels=labels,
-            await_complete=await_complete, run_async_await=run_async_await, *args, **kwargs)
+        return self.client.create_snapshot(self.folder_id, self.id, *args, **kwargs)
 
     @classmethod
     def de_json(cls, data: dict, client):
