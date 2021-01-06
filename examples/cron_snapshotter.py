@@ -212,7 +212,7 @@ OP_TIMEOUT = 900
 config = Config(args.config_file)
 compute = ComputeClient(oauth_token=config.token, operation_timeout=OP_TIMEOUT)
 logging.basicConfig(
-    level=config.loglevel,
+    level=config.loglevel.upper(),
     datefmt="%d %b %H:%M:%S",
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
