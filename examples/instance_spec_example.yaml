@@ -31,4 +31,3 @@ networkInterfaceSpecs:
       address: 84.XX.XX.XX  # must be reserved before using
 schedulingPolicy:
   preemptible: false
-  
