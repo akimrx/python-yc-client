@@ -1,10 +1,14 @@
 # [Unofficial] Yandex.Cloud REST API Client
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![PyPi Package](https://img.shields.io/pypi/v/yandex-cloud-client.svg)](https://pypi.org/project/yandex-cloud-client/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/yandex-cloud-client.svg)](https://pypi.org/project/yandex-cloud-client.)
+[![PyPi Package](https://img.shields.io/pypi/v/yandex-cloud-client.svg)](https://pypi.org/project/yandex-cloud-client/)
 
 ![](docs/logo.png)
 
 **ALPHA VERSION**  
+  
+**Warning:** Some features may be unavailable or unstable. The client is developed by one developer in his spare time. If you are not satisfied with this, you can always add or change the client by creating a pull request.
 
 **Probably, this REST API Client will make your life with Yandex.Cloud a little easier.**  
 

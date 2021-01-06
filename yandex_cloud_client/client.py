@@ -95,6 +95,7 @@ class YandexCloudClient(YandexCloudObject):
                  service_account_key: dict = None,
                  request: object = None,
                  timeout: int = None,
+                 operation_timeout: int = None,
                  base_url: str = None,
                  resource_manager_url: str = None,
                  compute_url: str = None,
@@ -121,6 +122,7 @@ class YandexCloudClient(YandexCloudObject):
             raise InvalidToken('IAM/OAuth token or service account key required!')
 
         self.timeout = int(timeout) if timeout is not None else DEFAULT_TIMEOUT
+        self.operation_timeout = int(operation_timeout) if operation_timeout is not None else DEFAULT_OP_TIMEOUT
 
         if request:
             self._request = request
@@ -193,7 +195,7 @@ class YandexCloudClient(YandexCloudObject):
         operation = Operation.de_json(response, self)
         if not await_complete:
             return operation
-        return OperationWait(operation).completed
+        return OperationWait(operation, timeout=self.operation_timeout).completed
 
     # actually, half-async (because Requests)
     async def _async_delete_resource(self, url) -> CoroutineType:
@@ -203,7 +205,7 @@ class YandexCloudClient(YandexCloudObject):
         response = self._request.delete(url)
         operation = Operation.de_json(response, self)
 
-        await OperationWait(operation).await_complete_async()
+        await OperationWait(operation, timeout=self.operation_timeout).await_complete_async()
 
     def _resource_create(self, url, data=None, await_complete=True) -> Operation:
         """Wrapper for create resource."""
@@ -212,7 +214,7 @@ class YandexCloudClient(YandexCloudObject):
 
         if not await_complete:
             return operation
-        return OperationWait(operation).completed
+        return OperationWait(operation, timeout=self.operation_timeout).completed
 
     # actually, half-async (because Requests)
     async def _async_resource_create(self, url, data=None) -> Operation:
@@ -222,7 +224,7 @@ class YandexCloudClient(YandexCloudObject):
         response = self._request.post(url, json=data)
         operation = Operation.de_json(response, self)
 
-        await OperationWait(operation).await_complete_async()
+        await OperationWait(operation, timeout=self.operation_timeout).await_complete_async()
 
     # Operations public methods
 
@@ -304,7 +306,6 @@ class YandexCloudClient(YandexCloudObject):
             url += f'&filter={query_filter}'
 
         response = self._request.get(url)
-        print(response)
         return Folder.de_list(response.get('folders'), self)
 
     @log
@@ -400,7 +401,7 @@ class ComputeClient(YandexCloudClient):
         operation = Operation.de_json(response, self)
         if not await_complete:
             return operation
-        return OperationWait(operation).completed
+        return OperationWait(operation, timeout=self.operation_timeout).completed
 
     # actually, half-async (because Requests)
     async def _async_instance_state_management(self, action=None, instance_id=None) -> CoroutineType:
@@ -417,7 +418,7 @@ class ComputeClient(YandexCloudClient):
         response = self._request.post(url)
         operation = Operation.de_json(response, self)
 
-        await OperationWait(operation).await_complete_async()
+        await OperationWait(operation, timeout=self.operation_timeout).await_complete_async()
 
     def _instance_disk_management(self, instance_id: str, data=None,
                                   action=None, await_complete=True) -> Operation:
@@ -434,7 +435,7 @@ class ComputeClient(YandexCloudClient):
         operation = Operation.de_json(response, self)
         if not await_complete:
             return operation
-        return OperationWait(operation).completed
+        return OperationWait(operation, timeout=self.operation_timeout).completed
 
     # actually, half-async (because Requests)
     async def _async_instance_disk_management(self, instance_id: str,
@@ -452,7 +453,7 @@ class ComputeClient(YandexCloudClient):
         response = self._request.post(url, json=data)
         operation = Operation.de_json(response, self)
 
-        await OperationWait(operation).await_complete_async()
+        await OperationWait(operation, timeout=self.operation_timeout).await_complete_async()
 
     def _convert_attached_disks(self, disks: list) -> Disk:
         """Helpers func for convert instance attached disks."""

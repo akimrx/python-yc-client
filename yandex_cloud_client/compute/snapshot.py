@@ -88,7 +88,6 @@ class Snapshot(YandexCloudObject):
 
     def delete(self, *args, **kwargs):
         """Shortcut for client.delete_snapshot()."""
-        print(args, kwargs)
         return self.client.delete_snapshot(self.id, *args, **kwargs)
 
     def update(self, *args, **kwargs):

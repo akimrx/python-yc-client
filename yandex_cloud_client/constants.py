@@ -14,5 +14,6 @@ INSTANCE_PLATFORMS = ('standard-v1', 'standard-v2')
 IP_VERSIONS = ('IPV4', 'IPV6')
 BASE_HEADERS = {'content-type': 'application/json'}
 DEFAULT_TIMEOUT = 10
+DEFAULT_OP_TIMEOUT = 600
 SECONDS_IN_DAY = 86400
 AZ = ('ru-central1-a', 'ru-central1-b', 'ru-central1-c')

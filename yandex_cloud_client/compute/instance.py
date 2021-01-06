@@ -361,7 +361,7 @@ class InstanceSpec(YandexCloudObject):
         self.folderId = folder_id
         self.name = name
         self.description = description
-        self.labels = labels
+        self.labels = labels or {}
         self.zoneId = zone_id
         self.platformId = platform_id
         self.resourcesSpec = resources_spec
