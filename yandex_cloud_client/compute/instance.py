@@ -40,7 +40,7 @@ class Instance(YandexCloudObject):
       :created_at: datetime
       :name: str
       :description: str
-      :labels: list
+      :labels: dict
       :zone_id: str
       :platform_id: str
       :resources: object
@@ -89,7 +89,7 @@ class Instance(YandexCloudObject):
         self.created_at = string_to_datetime(created_at) if created_at is not None else created_at
         self.name = name
         self.description = description
-        self.labels = labels
+        self.labels = labels or {}
         self.zone_id = zone_id
         self.platform_id = platform_id
         self.resources = resources
@@ -166,62 +166,54 @@ class Instance(YandexCloudObject):
 
         return instances
 
-    def start(self, run_async_await=False, await_complete=True, *args, **kwargs):
+    def start(self, *args, **kwargs):
         """Shortcut for client.start_instance()."""
-        return self.client.start_instance(self.id, await_complete, run_async_await, *args, **kwargs)
+        return self.client.start_instance(self.id, *args, **kwargs)
 
-    def restart(self, run_async_await=False, await_complete=True, *args, **kwargs):
+    def restart(self, *args, **kwargs):
         """Shortcut for client.restart_instance()."""
-        return self.client.restart_instance(self.id, await_complete, run_async_await, *args, **kwargs)
+        return self.client.restart_instance(self.id, *args, **kwargs)
 
-    def stop(self, run_async_await=False, await_complete=True, *args, **kwargs):
+    def stop(self, *args, **kwargs):
         """Shortcut for client.stop_instance()."""
-        return self.client.stop_instance(self.id, await_complete, run_async_await, *args, **kwargs)
+        return self.client.stop_instance(self.id, *args, **kwargs)
 
-    def delete(self, run_async_await=False, await_complete=True, *args, **kwargs):
+    def delete(self, *args, **kwargs):
         """Shortcut for client.delete_instance()."""
-        return self.client.delete_instance(self.id, await_complete, run_async_await, *args, **kwargs)
+        return self.client.delete_instance(self.id, *args, **kwargs)
 
-    def update(self, run_async_await=False, await_complete=True, *args, **kwargs):
+    def update(self, *args, **kwargs):
         """Shortcut for client.update_instance()."""
         pass
 
-    def update_metadata(self, run_async_await=False, await_complete=True, *args, **kwargs):
+    def update_metadata(self, *args, **kwargs):
         """Shortcut for client.update_instance_metadata()."""
         pass
 
-    def operations(self, page_size=1000, *args, **kwargs):
+    def operations(self, *args, **kwargs):
         """Shortcut for client.instance_operations()."""
-        return self.client.instance_operations(self.id, page_size=page_size, *args, **kwargs)
+        return self.client.instance_operations(self.id, *args, **kwargs)
 
-    def attach_new_disk(self, name=None, description=None,
-                       type_id=None, size=None, image_id=None,
-                       snapshot_id=None, *args, **kwargs):
+    def attach_new_disk(self, *args, **kwargs):
         """Create new disk and attach to the instance."""
-        if image_id and snapshot_id:
-            raise ValueError('SOME MESSAGE')
-        else:
-            pass
+        raise RuntimeError("Method not support yet")
 
-    def attach_existent_disk(self, disk_id=None, *args, **kwargs):
+    def attach_existent_disk(self, *args, **kwargs):
         """Shortcut for Client.instance_attach_existent_disk()."""
-        return self.client.instance_attach_existent_disk(self.id, disk_id=disk_id,
-            await_complete=True, run_async_await=False, *args, **kwargs)
+        return self.client.instance_attach_existent_disk(self.id, *args, **kwargs)
 
-    def detach_disk(self, disk_id=None, disk_name=None, await_complete=True,
-                    run_async_await=False, *args, **kwargs):
+    def detach_disk(self, *args, **kwargs):
         """Shortcut for Client.instance_detach_disk()."""
-        return self.client.instance_detach_disk(self.id, disk_id=disk_id, disk_name=disk_name,
-            await_complete=await_complete, run_async_await=run_async_await, *args, **kwargs)
+        return self.client.instance_detach_disk(self.id, *args, **kwargs)
 
     def attached_disks(self, *args, **kwargs):
         """Shortcut for private method Client._convert_attached_disks()."""
         disks = [self.boot_disk.id] + [x.id for x in self.secondary_disks]
         return self.client._convert_attached_disks(disks, *args, **kwargs)
 
-    def serial_port_output(self, port=None, *args, **kwargs):
+    def serial_port_output(self, *args, **kwargs):
         """Shortcut for client.instance_serial_port_output()."""
-        return self.client.instance_serial_port_output(self.id, port=port, *args, **kwargs)
+        return self.client.instance_serial_port_output(self.id, *args, **kwargs)
 
 
     # Aliases
@@ -369,7 +361,7 @@ class InstanceSpec(YandexCloudObject):
         self.folderId = folder_id
         self.name = name
         self.description = description
-        self.labels = labels
+        self.labels = labels or {}
         self.zoneId = zone_id
         self.platformId = platform_id
         self.resourcesSpec = resources_spec

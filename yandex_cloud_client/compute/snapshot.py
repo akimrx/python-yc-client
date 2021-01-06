@@ -18,7 +18,7 @@ class Snapshot(YandexCloudObject):
       :created_at: datetime
       :name: str
       :description: str
-      :labels: list
+      :labels: dict
       :storage_size: int
       :disk_size: int
       :product_ids: list
@@ -53,7 +53,7 @@ class Snapshot(YandexCloudObject):
         self.created_at = string_to_datetime(created_at) if created_at is not None else created_at
         self.name = name
         self.description = description
-        self.labels = labels
+        self.labels = labels or {}
         self.storage_size = int(storage_size) if storage_size is not None else storage_size
         self.disk_size = int(disk_size) if disk_size is not None else disk_size
         self.product_ids = product_ids
@@ -86,18 +86,17 @@ class Snapshot(YandexCloudObject):
             return human_readable_size(self.disk_size)
         return self.disk_size
 
-    def delete(self, await_complete=True, run_async_await=False, *args, **kwargs):
+    def delete(self, *args, **kwargs):
         """Shortcut for client.delete_snapshot()."""
-        return self.client.delete_snapshot(self.folder_id, self.id, await_complete=await_complete,
-            run_async_await=run_async_await, *args, **kwargs)
+        return self.client.delete_snapshot(self.id, *args, **kwargs)
 
     def update(self, *args, **kwargs):
         """Shortcut for client.update_snapshot()."""
         pass
 
-    def operations(self, page_size=1000, *args, **kwargs):
+    def operations(self, *args, **kwargs):
         """Shortcut for snapshot_operations()."""
-        return self.client.snapshot_operations(self.id, page_size=page_size, *args, **kwargs)
+        return self.client.snapshot_operations(self.id, *args, **kwargs)
 
     @classmethod
     def de_json(cls, data: dict, client):

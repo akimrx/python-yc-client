@@ -21,7 +21,6 @@ def _git_revision() -> Optional[str]:
 def print_ver_info() -> None:
     git_revision = _git_revision()
     print('yandex-cloud-client {}'.format(client_ver) + (' ({})'.format(git_revision) if git_revision else ''))
-    print('certifi {}'.format(certifi.__version__))  # type: ignore[attr-defined]
     print('Python {}'.format(sys.version.replace('\n', ' ')))
 
 
