@@ -22,7 +22,7 @@ from yandex_cloud_client.utils.endpoints import (
     RESOURCE_MANAGER_URL,
     CERTIFICATE_DATA_URL
 )
-from yandex_cloud_client.constants import BASE_HEADERS, DEFAULT_TIMEOUT
+from yandex_cloud_client.constants import BASE_HEADERS, DEFAULT_TIMEOUT, DEFAULT_OP_TIMEOUT
 from yandex_cloud_client.error import (
     InvalidToken,
     YandexCloudError,
