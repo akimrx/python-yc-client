@@ -34,7 +34,7 @@ class Config(object):
         self.filepath = filepath
         self.token = args.token or None
         self.lifetime = args.lifetime if args.lifetime is not None else 365
-        self.instances = args.instances.split(",") if args.instances else []
+        self.instances = []
         self.labels = {"creator": "snapshotter"}
         self.loglevel = args.loglevel or "INFO"
         self.graceful = False
@@ -123,30 +123,9 @@ params.add_argument(
     required=False,
     help="Age of the snapshot to delete. Default: 365"
 )
-params.add_argument(
-    "-i", "--instances",
-    type=str,
-    metavar="str [, ...]",
-    required=False,
-    help="Comma separated instances"
-)
 
 # Options
 options = parser.add_argument_group("Options")
-options.add_argument(
-    "-S", "--with-secondary",
-    action="store_true",
-    required=False,
-    help="Runs the tasks the same way for secondary disks"
-)
-options.add_argument(
-    "-G", "--graceful",
-    action="store_true",
-    required=False,
-    help="Graceful snapshot creation. " \
-         "First stop the instance and start it after the snapshot createoperation is completed"
-)
-
 options.add_argument(
     "-C", "--config-file",
     metavar="file",
@@ -184,22 +163,26 @@ args = parser.parse_args()
 def print_config_example():
     msg = """
 token: AQAAAisahdsal...
-
-# Snapshot age for deletion
-lifetime: 6
-
-# Stop the instance before create snapshot
-graceful: true
-
-# Create snapshots for attached disks
-with_secondary: true
-
-# Log facility
 loglevel: info
 
+global_options:
+  lifetime: 6
+  graceful: true
+  with_secondary: false
+  watch_all_snapshots: false
+
 instances:
-  - qwe123qwe123qweW
-  - zxc456zxc456zxcX
+  - id: qwe123qwe123qweW
+    with_secondary: true
+    min_snapshots: 1
+    max_snapshots: 2
+    watch_all_snapshots: true
+
+  - id: zxc456zxc456zxcX
+    graceful: false
+    lifetime: 14
+    min_snapshots: 2
+    max_snapshots: 10
 """
     print(msg)
     sys.exit(0)
@@ -222,6 +205,28 @@ CONCURRENT_OP_QUOTA = 15
 OP_LIMIT = round(CONCURRENT_OP_QUOTA / len(config.instances))
 if OP_LIMIT <= 1:
     OP_LIMIT = 3
+
+
+# TODO: finish
+class InstanceParams(object):
+    """Not completed."""
+    def __init__(
+        self,
+        id=None,
+        min_snapshots=None,
+        max_snapshots=None,
+        watch_all_snapshots=None,
+        graceful=None,
+        lifetime=None,
+        with_secondary=None
+    ):
+        self.id = id
+        self.min_snapshots = min_snapshots or 1
+        self.max_snaphosts = max_snaphosts or 999
+        self.watch_all_snapshots = watch_all_snapshots or config.watch_all_snapshots or False
+        self.graceful = graceful or config.graceful or True
+        self.lifetime = lifetime or config.lifetime or 365
+        self.with_secondary = with_secondary or config.with_secondary or False
 
 
 def list_chunks(lst, n):
